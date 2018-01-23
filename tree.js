@@ -12,38 +12,28 @@ class Move {
 
 class MoveTree {
   constructor(coordinatePair, maxDepth) {
-    this.start = new Move(coordinatePair[0], coordinatePair[1]);
+    this.start = new Move(coordinatePair[0], coordinatePair[1], 0);
     this.maxDepth = maxDepth;
     this.moveNodes = {};
   }
 
-  potentialMoves(node = this.start) {
-    let xpos = -2;
-    let ypos = 2;
-    //Assume 8 x 8 chessboard
-    while (node.x + xpos >= 0 && node.x + xpos < 8 && xpos < 3 && xpos > -3) {
-      while (node.y + ypos >= 0 && node.y + ypos < 8 && ypos < 3 && ypos > -3) {
-        if (Math.abs(xpos) !== Math.abs(ypos) || xpos !== 0 || ypos !== 0) {
-          let key = node.x + xpos + node.y + ypos + "";
-          this.moveNodes[key] = new Move(node.x + xpos, node.y + ypos);
-        }
-        ypos--;
-      }
-      xpos++;
-    }
-  }
-
-  buildTree(origin, depth = 0, maxDepth = 1) {
-    if (depth > maxDepth) {
+  buildTree(origin = this.start, depth = 0) {
+    if (depth < this.maxDepth) {
       //Build the tree
-      const moves = createMoves(origin);
+      const moves = this.createMoves(origin);
       //Filter invalid moves
-      const validMoves = filterInvalidMoves(moves);
-
+      const validMoves = this.filterInvalidMoves(moves);
+      origin.children = validMoves;
+      console.log(origin.children);
+      depth++;
+      origin.children.forEach(child => {
+        this.buildTree(child, depth);
+      });
       //Add the valid moves as children to the root
       //Root should be the origin or place the knight started
       //Call buildTree for next depth
     }
+    return this.start;
   }
 
   filterInvalidMoves(moves) {
@@ -52,18 +42,21 @@ class MoveTree {
     //Is x greater than max?
     //Is y greater than max?
     //return filtered moves
+    return moves.filter(move => {
+      return move.x >= 0 && move.y >= 0 && move.x < 8 && move.y < 8;
+    });
   }
 
   createMoves(origin) {
     return [
-      new Move(this.start - 2, this.start + 1),
-      new Move(this.start - 2, this.start - 1),
-      new Move(this.start + 2, this.start - 1),
-      new Move(this.start + 2, this.start + 1),
-      new Move(this.start - 1, this.start + 2),
-      new Move(this.start - 1, this.start - 2),
-      new Move(this.start + 1, this.start - 2),
-      new Move(this.start + 1, this.start + 2)
+      new Move(origin.x - 2, origin.y + 1, origin.depth + 1),
+      new Move(origin.x - 2, origin.y - 1, origin.depth + 1),
+      new Move(origin.x + 2, origin.y - 1, origin.depth + 1),
+      new Move(origin.x + 2, origin.y + 1, origin.depth + 1),
+      new Move(origin.x - 1, origin.y + 2, origin.depth + 1),
+      new Move(origin.x - 1, origin.y - 2, origin.depth + 1),
+      new Move(origin.x + 1, origin.y - 2, origin.depth + 1),
+      new Move(origin.x + 1, origin.y + 2, origin.depth + 1)
     ];
   }
 
@@ -75,16 +68,29 @@ class MoveTree {
   inspect() {
     console.log(
       "THIS IS NUMBER OF MOVE NODES: ",
-      JSON.stringify(this.moveNodes, null, 2)
+      JSON.stringify(this.start, null, 2)
     );
     console.log("THIS IS MAX DEPTH: ", this.start.depth);
   }
 }
 
 class KnightSearcher {
-  constructor() {}
+  constructor(tree) {
+    this.tree = tree;
+  }
+
+  bfsFor(targetCoordinates) {
+    let queue = [];
+    let currentNode = this.tree.start;
+    if (currentNode.x === targetCoordinates[0]){
+      if (currentNode.children) {
+        while (currentNode.depth) {
+          queue.push();
+        }
+      }
+  }
 }
 
-let tree = new MoveTree([3, 3], 1);
-tree.potentialMoves();
-tree.inspect();
+let testTree = new MoveTree([3, 3], 2);
+testTree.buildTree();
+testTree.inspect();
